@@ -8,19 +8,23 @@ This project is a NEM12 Meter Reader system that reads meter readings from a NEM
 ** Reads and parses NEM12 format files.
 ** Sends parsed data to the queue for downstream processing.
 
-* `meter-reading-dbwriter`
+* `meter-readings-dbwriter`
 ** Listens to the queue and receives meter reading data.
 ** Writes the readings into the database.
 
-* `queue`
-** https://github.com/OpenHFT/Chronicle-Queue[Chronicle-Queue] is provided as a sample queue implementation.
-** Acts as the communication channel between the preprocessor and the database writer.
+* `common`
+** Contains shared classes used for message transmission.
+
+== Project Dependencies
+
+The system uses a queue for data transmission. It acts as the communication channel between the preprocessor and the database writer.
+
+https://zeromq.org[Zero-MQ] is provided as a sample queue implementation.
 
 == Usage
 
-1. Ensure the queue service is up and running.
-2. Start the `meter-reading-dbwriter` module first.
-3. Start the `meter-data-preprocessor` module to begin reading and processing NEM12 files.
+1. Start the `meter-readings-dbwriter` module first.
+2. Start the `meter-data-preprocessor` module to begin reading and processing NEM12 files.
 
 == Notes
 
@@ -28,5 +32,7 @@ This project is a NEM12 Meter Reader system that reads meter readings from a NEM
 
 == Future Enhancements
 
+* Add Docker support to enable containerized startup of each module (not implemented, as the development laptop does not have Docker installed).
+* Support integration with alternative queue implementations.
 * Provide other sources for `meter-data-preprocessor`.
 * Implement monitoring of queue for better observability.

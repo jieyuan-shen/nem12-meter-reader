@@ -5,8 +5,8 @@ import com.google.common.base.Splitter;
 import io.micrometer.common.util.StringUtils;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import org.example.data.MeterInfo;
-import org.example.data.MeterReading;
+import org.example.common.MeterInfo;
+import org.example.common.MeterReading;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -17,10 +17,11 @@ import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+
+import static org.joda.time.DateTimeConstants.MINUTES_PER_DAY;
 
 @Slf4j
 @Component
@@ -28,8 +29,10 @@ public class MeterDataFileReader implements ApplicationRunner {
 
     // In this implementation, meter data file is located in local storage
     // This can be expanded to other meter data file sources according to practical needs
-    @Value("${filePath}")
+    @Value("${meterData.filePath}")
     private String filePath;
+
+    private IQueueSender queueSender;
 
     // Only 200 record and 300 record are in interest in this project
     private final String PREFIX_200_RECORD = "200";
@@ -39,7 +42,14 @@ public class MeterDataFileReader implements ApplicationRunner {
     private final int IDX_NMI_IN_200_RECORD = 1;
     private final int IDX_INTERVAL_LENGTH_IN_200_RECORD = 8;
 
-    private final int MINUTES_PER_DAY = 1440;
+
+    /**
+     * Constructor, inject queue sender
+     * @param queueSender
+     */
+    MeterDataFileReader(IQueueSender queueSender) {
+        this.queueSender = queueSender;
+    }
 
     /**
      * Read file and process meter data
@@ -107,8 +117,10 @@ public class MeterDataFileReader implements ApplicationRunner {
             // skip record indicator
             it.next();
 
-            DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyyMMdd");
-            DateTime dateTime = formatter.parseDateTime(it.next()/* date str */);
+            DateTimeFormatter dateFormatter = DateTimeFormat.forPattern("yyyyMMdd");
+            DateTime dateTime = dateFormatter.parseDateTime(it.next()/* date str */);
+
+            DateTimeFormatter timestampFormatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
 
             int numReadings = MINUTES_PER_DAY / meterInfo.getIntervalLength();
             List<MeterReading> readings = new ArrayList<>(numReadings);
@@ -120,13 +132,13 @@ public class MeterDataFileReader implements ApplicationRunner {
                 // according NEM12 spec, no negative reading value is allowed.
                 Preconditions.checkArgument(value >= 0, "invalid reading value: " + readingStr);
 
-                readings.add(new MeterReading(value, dateTime.getMillis()));
+                readings.add(new MeterReading(value, timestampFormatter.print(dateTime)));
                 // plus interval length in minutes
                 dateTime = dateTime.plusMinutes(meterInfo.getIntervalLength());
             }
 
             // TODO: send out the reading to queue
-            log.info("sending {} {}", meterInfo, readings);
+            queueSender.send(meterInfo, readings);
         }
         catch (Throwable t) {
             log.error("Error processing reading: " + line, t);

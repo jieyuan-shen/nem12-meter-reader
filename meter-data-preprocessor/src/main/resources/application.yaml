@@ -3,4 +3,8 @@ spring:
     active: default
     name: meter-data-preprocessor
 
-filePath: NEM12-example-data-1.dat
+meterData:
+  filePath: NEM12-example-data-1.dat
+
+zeroMQ:
+  address: tcp://127.0.0.1:5555

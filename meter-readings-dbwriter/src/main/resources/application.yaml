@@ -1,3 +1,7 @@
 spring:
   application:
-    name: meter-data-preprocessor
+    active: default
+    name: meter-readings-dbwriter
+
+zeroMQ:
+  address: tcp://0.0.0.0:5555
