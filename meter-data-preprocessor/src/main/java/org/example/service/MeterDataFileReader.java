@@ -92,7 +92,7 @@ public class MeterDataFileReader implements ApplicationRunner {
      * @param line  one 200 record
      * @return meter info, or null if the line is not a 200 record
      */
-    private MeterInfo decodeMeterInfo(@NonNull String line) {
+    MeterInfo decodeMeterInfo(@NonNull String line) {
         log.debug("processing meter info: {}", line);
         List<String> splittedLine = Splitter.on(',').splitToList(line);
 
@@ -110,7 +110,7 @@ public class MeterDataFileReader implements ApplicationRunner {
      * @param line  one 300 record
      * @param meterInfo  current meter info
      */
-    private void processReading(@NonNull String line, @NonNull MeterInfo meterInfo) {
+    void processReading(@NonNull String line, @NonNull MeterInfo meterInfo) {
         log.debug("processing reading: {}", line);
         try {
             Iterator<String> it = Splitter.on(',').split(line).iterator();

@@ -26,7 +26,7 @@ import java.util.List;
 public class ZeroMQSender implements IQueueSender {
 
     @Value("${zeroMQ.address}")
-    private String connectAddr;
+    String connectAddr;
 
     ZContext context;
     ZMQ.Socket pubSocket;
@@ -51,6 +51,7 @@ public class ZeroMQSender implements IQueueSender {
     public void send(MeterInfo meterInfo, List<MeterReading> readings) {
         MeterReadingMsg msg = new MeterReadingMsg(meterInfo.getNmi(), readings);
         aquireSocket().send(new Gson().toJson(msg));
+        log.debug("Sent: " + msg);
     }
 
     /**
