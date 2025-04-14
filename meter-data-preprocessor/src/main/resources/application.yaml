@@ -1,0 +1,6 @@
+spring:
+  application:
+    active: default
+    name: meter-data-preprocessor
+
+filePath: NEM12-example-data-1.dat
